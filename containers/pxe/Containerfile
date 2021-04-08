@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
-ENV OCPVERSION="4.6.12"
+ENV OCPVERSION="4.7.0"
 
-ENV OCPRHCOSVERSION="4.6.8"
+ENV OCPRHCOSVERSION="4.7.0"
 
 ENV HELPERNODEVERSION="v2alpha2"
 
@@ -14,19 +14,29 @@ COPY files/CentOS-bo.repo /etc/yum.repos.d/
 RUN chmod 0644 /etc/yum.repos.d/CentOS.repo && \
     dnf -y install --enablerepo CentOS-AppStream --enablerepo CentOS-BaseOS tftp-server syslinux && \
     dnf -y install wget jq python3-pip && \
+    python3 -m pip install --upgrade pip setuptools wheel && \
     pip3 install ansible yq
 
 COPY files/pxe-bootstrap.j2 /usr/local/src/
 COPY files/pxe-master.j2 /usr/local/src/
 COPY files/pxe-worker.j2 /usr/local/src/
 
+COPY files/grub2-bootstrap.j2 /usr/local/src/
+COPY files/grub2-master.j2 /usr/local/src/
+COPY files/grub2-worker.j2 /usr/local/src/
+
+COPY files/grubx64.efi /opt/
+COPY files/shimx64.efi /opt/ 
+
 RUN export OCPRHCOSURL="https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCPVERSION%.*}/${OCPRHCOSVERSION}" && \
-    mkdir -m 0755 -p /var/lib/tftpboot/{pxelinux.cfg,rhcos} && \
+    mkdir -m 0755 -p /var/lib/tftpboot/{pxelinux.cfg,rhcos,grub2} && \ 
     cp -a /usr/share/syslinux/* /var/lib/tftpboot/ && \
+    cp -a /opt/shimx64.efi /var/lib/tftpboot/grub2/shimx64.efi && \
+    cp -a /opt/grubx64.efi /var/lib/tftpboot/grub2/grubx64.efi && \
     wget ${OCPRHCOSURL}/rhcos-${OCPRHCOSVERSION}-x86_64-live-initramfs.x86_64.img -O /var/lib/tftpboot/rhcos/initramfs.img && \
     wget ${OCPRHCOSURL}/rhcos-${OCPRHCOSVERSION}-x86_64-live-kernel-x86_64 -O /var/lib/tftpboot/rhcos/kernel && \
+    chmod 0555 /var/lib/tftpboot/grub2 && \
     chmod 0555 /var/lib/tftpboot/rhcos/{initramfs.img,kernel}
-
 
 COPY scripts/startup.sh /usr/local/bin/
 

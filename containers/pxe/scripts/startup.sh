@@ -6,8 +6,10 @@
 ## Variables for PXE
 tftpBootDir=/var/lib/tftpboot
 pxeConfig=${tftpBootDir}/pxelinux.cfg
+uefiConfig=${tftpBootDir}/grub2
 rhcosDir=${tftpBootDir}/rhcos
 bootstrapPxeTemplate=/usr/local/src/pxe-bootstrap.j2
+bootstrapPxeUEFITemplate=/usr/local/src/grub2-bootstrap.j2
 masterPxeTemplate=/usr/local/src/pxe-master.j2
 workerPxeTemplate=/usr/local/src/pxe-worker.j2
 helperPodYaml=/usr/local/src/helperpod.yaml
@@ -26,6 +28,9 @@ echo ${HELPERPOD_CONFIG_YAML} | base64 -d > ${helperPodYaml}
 
 # First create the bootstrap
 ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .bootstrap.disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${bootstrapPxeTemplate} dest=${pxeConfig}/01-$(yq -r .bootstrap.macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
+
+# Create the uefi config for the bootstrap
+ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .bootstrap.disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${bootstrapPxeUEFITemplate} dest=${uefiConfig}/grub.cfg-01-$(yq -r .bootstrap.macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
 
 # For the masters, we need to loop
 masters=($(yq -r '.masters[] | @base64'  < ${helperPodYaml}))
