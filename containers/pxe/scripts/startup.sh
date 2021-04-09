@@ -11,7 +11,9 @@ rhcosDir=${tftpBootDir}/rhcos
 bootstrapPxeTemplate=/usr/local/src/pxe-bootstrap.j2
 bootstrapPxeUEFITemplate=/usr/local/src/grub2-bootstrap.j2
 masterPxeTemplate=/usr/local/src/pxe-master.j2
+masterPxeUEFITemplate=/usr/local/src/grub2-master.j2
 workerPxeTemplate=/usr/local/src/pxe-worker.j2
+workerPxeUEFITemplate=/usr/local/src/grub2-worker.j2
 helperPodYaml=/usr/local/src/helperpod.yaml
 ansibleLog=/var/log/helperpod_ansible_run.log
 
@@ -37,6 +39,7 @@ masters=($(yq -r '.masters[] | @base64'  < ${helperPodYaml}))
 for master in ${!masters[@]}
 do
 	ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .masters[${master}].disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${masterPxeTemplate} dest=${pxeConfig}/01-$(yq -r .masters[${master}].macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
+	ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .masters[${master}].disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${masterPxeUEFITemplate} dest=${uefiConfig}/grub.cfg-01-$(yq -r .masters[${master}].macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
 done
 
 # Only loop through the workers if there is any (i.e. "compact cluster" mode)
@@ -45,6 +48,7 @@ if yq -r .workers ${helperPodYaml} > /dev/null 2>&1; then
 	for worker in ${!workers[@]}
 	do
 		ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .workers[${worker}].disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${workerPxeTemplate} dest=${pxeConfig}/01-$(yq -r .workers[${worker}].macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
+		ansible localhost -c local -e @${helperPodYaml} -e "http_port=${HELPERNODE_HTTP_PORT}" -e disk=$(yq -r .workers[${worker}].disk ${helperPodYaml} | tr [:upper:] [:lower:]) -m template -a "src=${workerPxeUEFITemplate} dest=${uefiConfig}/grub.cfg-01-$(yq -r .workers[${worker}].macaddr ${helperPodYaml} | tr [:upper:] [:lower:] | sed 's~:~-~g') mode=0555" >> ${ansibleLog} 2>&1
 	done
 fi
 
