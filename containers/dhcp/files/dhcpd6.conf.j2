@@ -1,0 +1,17 @@
+{% if dhcp6 is defined %}
+authoritative;
+
+### IPv6 Subnet
+subnet6 {{ dhcp6.subnet }} {
+interface {{ helper.networkifacename }};
+        range6  {{ dhcp6.poolstart }} {{ dhcp6.poolend }};
+        {% if dhcp6.dnsForwarder2 is defined %}
+        option dhcp6.name-servers {{ dhcp6.dnsForwarder1 }}, {{ dhcp6.dnsForwarder2 }};
+	{% else %}
+        option dhcp6.name-servers {{ dhcp6.dnsForwarder1 }};
+        {% endif %}
+        option dhcp6.domain-search            "{{ dns.clusterid }}.{{ dns.domain | lower }}", "{{ dns.domain | lower }}";
+        default-lease-time 86400;
+        max-lease-time 86400;
+}
+{% endif %}

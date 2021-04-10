@@ -11,7 +11,7 @@
 set default=0
 set timeout=10
 
-menuentry 'Install Bootstrap Node' {
+menuentry 'Install Master Node' {
   linuxefi rhcos/kernel initrd=rhcos/initramfs.img nomodeset rd.neednet=1 rd.net.timeout.carrier=60 rd.net.timeout.dhcp=20 rd.net.dhcp.retry=10 ip={{ipconfig}} coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url=http://{{ helper.ipaddr }}:8080/install/rootfs.img coreos.inst.ignition_url=http://{{ helper.ipaddr }}:8080/ignition/master.ign
   initrdefi rhcos/initramfs.img
 }

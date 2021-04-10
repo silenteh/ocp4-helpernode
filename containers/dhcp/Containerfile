@@ -15,6 +15,7 @@ RUN chmod 0644 /etc/yum.repos.d/CentOS.repo && \
     pip3 install ansible
 
 COPY files/dhcpd.conf.j2 /usr/local/src/
+COPY files/dhcpd6.conf.j2 /usr/local/src/
 
 COPY scripts/startup.sh /usr/local/bin/
 
