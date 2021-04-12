@@ -11,6 +11,7 @@ COPY files/CentOS.repo /etc/yum.repos.d/
 RUN chmod 0644 /etc/yum.repos.d/CentOS.repo && \
     dnf -y install --enablerepo CentOS-AppStream bind bind-utils && \
     dnf -y install jq python3-pip && \
+    python3 -m pip install --upgrade pip setuptools wheel && \
     pip3 install ansible
 
 COPY files/named.conf.j2 /usr/local/src/

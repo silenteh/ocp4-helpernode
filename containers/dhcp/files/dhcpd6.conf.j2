@@ -1,17 +1,60 @@
-{% if dhcp6 is defined %}
 authoritative;
 
+
+{% if helper.ipaddr6 is defined %}
+option dhcp6.bootfile-url code 59 = string;
+option dhcp6.client-arch-type code 61 = array of unsigned integer 16;
+
+option dhcp6.name-servers 2001:db8:f00f:cafe::1;
+
+if option dhcp6.client-arch-type = 00:07 {
+        option dhcp6.bootfile-url "tftp://[{{helper.ipaddr6}}]/grub2/shimx64.efi";
+} else {
+        # Support a hypothetical BIOS system that can PXE boot over IPv6
+        option dhcp6.bootfile-url "tftp://[[{{helper.ipaddr6}}]/pxelinux.0";
+}
+{% endif %}
+
+{% if dhcp6 is defined %}
 ### IPv6 Subnet
 subnet6 {{ dhcp6.subnet }} {
 interface {{ helper.networkifacename }};
         range6  {{ dhcp6.poolstart }} {{ dhcp6.poolend }};
-        {% if dhcp6.dnsForwarder2 is defined %}
-        option dhcp6.name-servers {{ dhcp6.dnsForwarder1 }}, {{ dhcp6.dnsForwarder2 }};
+        {% if dhcp6.dnsforwarder2 is defined %}
+        option dhcp6.name-servers {{ dhcp6.dnsforwarder1 }}, {{ dhcp6.dnsforwarder2 }};
 	{% else %}
-        option dhcp6.name-servers {{ dhcp6.dnsForwarder1 }};
+        option dhcp6.name-servers {{ dhcp6.dnsforwarder1 }};
         {% endif %}
-        option dhcp6.domain-search            "{{ dns.clusterid }}.{{ dns.domain | lower }}", "{{ dns.domain | lower }}";
+        option dhcp6.domain-search "{{ dns.clusterid }}.{{ dns.domain | lower }}", "{{ dns.domain | lower }}";
         default-lease-time 86400;
         max-lease-time 86400;
 }
+{% endif %}
+
+
+# bootstrap
+host {{ bootstrap.name | lower }} {
+    host-identifier option dhcp6.client-id {{ bootstrap.macaddr }};
+    fixed-address6 {{ bootstrap.ipaddr6 }};
+}
+
+
+# Masters
+{% if masters is defined %}
+  {% for m in masters %}
+  host {{ m.name | lower }} {
+    host-identifier option dhcp6.client-id {{ m.macaddr }};
+    fixed-address6 {{ m.ipaddr6 }};
+  }
+  {% endfor %}
+{% endif %}
+
+# Workers
+{% if workers is defined %}
+  {% for m in workers %}
+  host {{ m.name | lower }} {
+    host-identifier option dhcp6.client-id {{ m.macaddr }};
+    fixed-address6 {{ m.ipaddr6 }};
+  }
+  {% endfor %}
 {% endif %}

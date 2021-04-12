@@ -13,6 +13,10 @@ ns1	IN	A	{{ helper.ipaddr }}
 smtp	IN	A	{{ helper.ipaddr }}
 ;
 {{ helper.name | lower }}	IN	A	{{ helper.ipaddr }}
+
+{% if helper.ipaddr6 is defined %}
+{{ helper.name | lower }}       IN      AAAA       {{ helper.ipaddr6 }}
+{% endif %}
 ;
 {%if high_availability is defined %}
 ; Create entry for the bastion hosts
@@ -28,6 +32,10 @@ api-int		IN	A	{{ ipiip.api }}
 {% else %}
 api		IN	A	{{ helper.ipaddr }}
 api-int		IN	A	{{ helper.ipaddr }}
+{% if helper.ipaddr6 is defined %}
+api             IN      AAAA       {{ helper.ipaddr6 }}
+api-int         IN      AAAA       {{ helper.ipaddr6 }}
+{% endif %}
 {% endif %}
 ;
 ; The wildcard also points to the load balancer
@@ -35,20 +43,32 @@ api-int		IN	A	{{ helper.ipaddr }}
 *.apps		IN	A	{{ ipiip.apps }}
 {% else %}
 *.apps		IN	A	{{ helper.ipaddr }}
+{% if helper.ipaddr6 is defined %}
+*.apps          IN      AAAA       {{ helper.ipaddr6 }}
+{% endif %}
 {% endif %}
 ;
 {%if setup_registry %}
 ; Create entry for the local registry
 registry	IN	A	{{ helper.ipaddr }}
-;
+{% if helper.ipaddr6 is defined %}
+registry        IN      AAAA       {{ helper.ipaddr6 }}
 {% endif %}
+{% endif %}
+;
 ; Create entry for the bootstrap host
 {{ bootstrap.name | lower }}	IN	A	{{ bootstrap.ipaddr }}
+{% if bootstrap.ipaddr6 is defined %}
+{{ bootstrap.name | lower }}    IN      AAAA       {{ bootstrap.ipaddr6 }}
+{% endif %}
 ;
 ; Create entries for the master hosts
 {% if masters is defined %}
 {% for m in masters %}
 {{ m.name | lower }}		IN	A	{{ m.ipaddr }}
+{% if m.ipaddr6 is defined %}
+{{ m.name | lower }}    IN      AAAA       {{ m.ipaddr6 }}
+{% endif %}
 {% endfor %}
 {% endif %}
 ;
@@ -56,6 +76,9 @@ registry	IN	A	{{ helper.ipaddr }}
 {% if workers is defined %}
 {% for w in workers %}
 {{ w.name | lower }}		IN	A	{{ w.ipaddr }}
+{% if w.ipaddr6 is defined %}
+{{ w.name | lower }}    IN      AAAA       {{ w.ipaddr6 }}
+{% endif %}
 {% endfor %}
 {% endif %}
 ;
@@ -63,6 +86,9 @@ registry	IN	A	{{ helper.ipaddr }}
 {% if masters is defined %}
 {% for m in masters %}
 etcd-{{ loop.index0 }}	IN	A	{{ m.ipaddr }}
+{% if m.ipaddr6 is defined %}
+etcd-{{ loop.index0 }}  IN      AAAA       {{ m.ipaddr6 }}
+{% endif %}
 {% endfor %}
 {% endif %}
 ;
