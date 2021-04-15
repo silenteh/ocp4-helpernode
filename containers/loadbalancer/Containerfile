@@ -1,12 +1,13 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
-ENV OCPVERSION="4.7.0"
+ENV OCPVERSION="4.6.8"
 
-ENV OCPRHCOSVERSION="4.7.0"
+ENV OCPRHCOSVERSION="4.6.8"
 
 ENV HELPERNODEVERSION="v2alpha2"
 
 RUN dnf -y install haproxy jq python3-pip && \
+    python3 -m pip install --upgrade pip setuptools wheel && \
     pip3 install ansible
 
 COPY files/haproxy.cfg.j2 /usr/local/src/

@@ -34,7 +34,7 @@ interface {{ helper.networkifacename }};
 
 # bootstrap
 host {{ bootstrap.name | lower }} {
-    host-identifier option dhcp6.client-id {{ bootstrap.macaddr }};
+    hardware ethernet {{ bootstrap.macaddr }};
     fixed-address6 {{ bootstrap.ipaddr6 }};
 }
 
@@ -43,7 +43,7 @@ host {{ bootstrap.name | lower }} {
 {% if masters is defined %}
   {% for m in masters %}
   host {{ m.name | lower }} {
-    host-identifier option dhcp6.client-id {{ m.macaddr }};
+    hardware ethernet {{ m.macaddr }};
     fixed-address6 {{ m.ipaddr6 }};
   }
   {% endfor %}
@@ -53,7 +53,7 @@ host {{ bootstrap.name | lower }} {
 {% if workers is defined %}
   {% for m in workers %}
   host {{ m.name | lower }} {
-    host-identifier option dhcp6.client-id {{ m.macaddr }};
+    hardware ethernet {{ m.macaddr }};
     fixed-address6 {{ m.ipaddr6 }};
   }
   {% endfor %}

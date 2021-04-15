@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
-ENV OCPVERSION="4.7.0"
+ENV OCPVERSION="4.6.8"
 
-ENV OCPRHCOSVERSION="4.7.0"
+ENV OCPRHCOSVERSION="4.6.8"
 
 ENV HELPERNODEVERSION="v2alpha2"
 

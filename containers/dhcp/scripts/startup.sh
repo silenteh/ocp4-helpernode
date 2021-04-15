@@ -37,7 +37,7 @@ else
         echo "========================"
         echo "Starting DHCP6 service..."
         echo "========================"
-        /usr/sbin/dhcpd -6 -cf ${dhcp6Config} -user dhcpd -group dhcpd --no-pid
+        /usr/sbin/dhcpd -f -6 -cf ${dhcp6Config} -user dhcpd -group dhcpd --no-pid
 fi
 
 
