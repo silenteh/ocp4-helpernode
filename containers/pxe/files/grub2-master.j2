@@ -1,30 +1,15 @@
-{% if ipaddr6 is defined and networkifacename is defined %}
+{% if pxe is defined and pxe == "6" %}
   {% set ignition = "[" + helper.ipaddr6 + "]" %}
-  {% set ipconfig = "[" + ipaddr6 + "]::[" + dhcp6.router + "]:[" + dhcp6.netmask + "]:" + name + ":" + networkifacename + ":none" %}
-  {% set ipconfig = ipconfig + " nameserver=[" + dhcp6.dnsforwarder1 + "]"%}
-  {% if dhcp6.dnsforwarder2 is defined %}
-    {% set ipconfig = ipconfig + " nameserver=[" + dhcp6.dnsforwarder2 + "]"%}
-  {% endif %}
-{% elif ipaddr is defined and networkifacename is defined %}
-  {% set ignition = helper.ipaddr %}
-  {% set ipconfig = ipaddr + "::" + dhcp.router + ":" + dhcp.netmask + ":" + name + ":" + networkifacename + ":none" %}
-  {% set ipconfig = ipconfig + " nameserver=" + dns.forwarder1 %}
-  {% if dns.forwarder2 is defined %}
-    {% set ipconfig = ipconfig + " nameserver=" + dns.forwarder2 %}
-  {% endif %}
+  {% set ipconfig = "dhcp6" %}
 {% else %}
   {% set ignition = helper.ipaddr %}
-  {% if networkifacename is defined %}
-  {% else %}
-  {% set ipconfig = "{{networkifacename}}:dhcp" %}
   {% set ipconfig = "dhcp" %}
-  {% endif %}
 {% endif %}
 
 set default=0
 set timeout=10
 
-menuentry 'Install Master Node' {
-  linuxefi rhcos/kernel initrd=rhcos/initramfs.img nomodeset rd.neednet=1 rd.net.timeout.carrier=60 rd.net.timeout.dhcp=20 rd.net.dhcp.retry=10 bootdev={{networkifacename}} ip={{networkifacename}}:dhcp ip=eno1:none coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url=http://{{ helper.ipaddr }}:8080/install/rootfs.img coreos.inst.ignition_url=http://{{ helper.ipaddr }}:8080/ignition/{{ name }}.ign coreos.no_persist_ip=0
+menuentry 'Install {{ node }} Node' {
+  linuxefi rhcos/kernel initrd=rhcos/initramfs.img nomodeset rd.neednet=1 rd.net.timeout.carrier=60 rd.net.timeout.dhcp=20 rd.net.dhcp.retry=10 bootdev={{networkifacename}} ip={{networkifacename}}:{{ipconfig}} ip=eno1:none coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url=http://{{ ignition }}:8080/install/rootfs.img coreos.inst.ignition_url=http://{{ ignition }}:8080/ignition/{{ node }}.ign coreos.no_persist_ip={{ persistnetwork }}
   initrdefi rhcos/initramfs.img
 }
